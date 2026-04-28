@@ -2,6 +2,11 @@ import asyncio
 import logging
 import csv
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load API keys from .env file
+load_dotenv()
+
 from fmcsa import get_fmcsa_data
 from sos_scraper import get_sos_data, search_owner_info
 from enrichment import enrich_with_llm
@@ -68,7 +73,10 @@ async def process_company(company_name, state):
 
 async def main():
     # Let's find our input file
-    input_file = Path("data/input.csv")
+    input_file = Path("data/input_small.csv")
+
+
+
     if not input_file.exists():
         logger.error("Wait, I can't find data/input.csv!")
         return

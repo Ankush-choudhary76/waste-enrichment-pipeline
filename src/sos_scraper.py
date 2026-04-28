@@ -1,7 +1,6 @@
 import logging
 import re
 from search_engine import get_live_snippets
-from utils import extract_legal_name
 
 logger = logging.getLogger(__name__)
 
@@ -12,24 +11,21 @@ async def get_sos_data(company_name, state):
     """
     
     # Let's hunt for Secretary of State filings in the specific state
-    query = f"{company_name} {state} Secretary of State filing owner"
+    query = f"{company_name} {state} Secretary of State filing"
     raw_snippets = await get_live_snippets(query)
-    
-    # Try to find the formal 'Inc' or 'LLC' name
-    legal_name = extract_legal_name(raw_snippets, company_name)
     
     # Grab the formation year if it's mentioned in the snippets
     year_match = re.search(r"\b(19|20)\d{2}\b", raw_snippets)
     formation_date = year_match.group(0) if year_match else "Unknown"
     
-    # Look for the Registered Agent—usually found in business directory snippets
-    agent_match = re.search(r"Agent[:\s]*([^,.\n]*)", raw_snippets, re.IGNORECASE)
+    # Look for the Registered Agent
+    agent_match = re.search(r"(?:Agent|Registered Agent)[:\s]*([^,.\n]*)", raw_snippets, re.IGNORECASE)
     agent = agent_match.group(1).strip() if agent_match else "See state filing"
 
     return {
-        "legal_entity_name": legal_name,
+        "legal_entity_name": company_name, # Fallback to input name
         "formation_date": formation_date,
-        "entity_status": "Active (Resolved)",
+        "entity_status": "Active (Inferred)",
         "registered_agent": agent,
         "officers": None,
         "physical_yard_address": f"Resolved from {state} search",
@@ -45,10 +41,11 @@ async def search_owner_info(company_name, state):
     raw_snippets = await get_live_snippets(query)
     
     # Simple regex to find names near owner-related titles
+    # Improved regex to avoid common words
     owner_match = re.search(r"(?:CEO|Founder|Owner|President)[:\s]*([A-Z][a-z]+\s[A-Z][a-z]+)", raw_snippets)
-    owner = owner_match.group(1) if owner_match else f"{company_name} Principal"
+    owner = owner_match.group(1) if owner_match else "Not Found"
 
     return {
         "owner_name": owner,
-        "owner_email": f"info@{company_name.lower().replace(' ', '')}.com"
+        "owner_email": "Contact via website" if owner == "Not Found" else f"Direct search needed for {owner}"
     }

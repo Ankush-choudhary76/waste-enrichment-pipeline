@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 
+
 async def get_fmcsa_data(company_name):
     """
     This function digs into the web to find trucking-related data.

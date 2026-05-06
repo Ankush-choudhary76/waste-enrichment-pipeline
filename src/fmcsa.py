@@ -7,7 +7,6 @@ from search_engine import get_live_snippets, extract_useful_info
 logger = logging.getLogger(__name__)
 
 
-
 async def get_fmcsa_data(company_name):
     """
     This function digs into the web to find trucking-related data.
